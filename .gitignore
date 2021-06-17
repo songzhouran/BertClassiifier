@@ -1,0 +1,9 @@
+venv/
+models/
+data/
+b/
+b.tar.gz
+__pycache__
+.DS_Store
+.idea
+README.md
