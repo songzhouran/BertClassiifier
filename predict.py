@@ -6,12 +6,16 @@ from scraper import SpiderBitcoin86
 
 
 if __name__ == '__main__':
-    newEventFile = '/Users/a/project/twitterscraper/csv/bitcoin86new.csv'
-    predictFile = '/Users/a/project/twitterscraper/csv/bitcoin86pred.csv'
-    labels = [-3, -2, -1, 0, 1, 2]
+    # newEventFile = '/Users/a/project/twitterscraper/csv/bitcoin86new.csv'
+    # predictFile = '/Users/a/project/twitterscraper/csv/bitcoin86pred.csv'
+    # modelFile = '/Users/a/Documents/best_model.pkl'
+    newEventFile = '/home/songzhouran/py/bert/BertClassifier/data/bitcoin86new.csv'
+    predictFile = '/home/songzhouran/py/bert/BertClassifier/data/bitcoin86pred.csv'
+    modelFile = '/home/songzhouran/py/bert/BertClassifier/models/best_model.pkl'
+    labels = [-2, -1, 0, 1, 2]
     bert_config = BertConfig.from_pretrained('bert-base-chinese')
     model = BertClassifier(bert_config, len(labels))
-    model.load_state_dict(torch.load('/Users/a/Documents/best_model.pkl', map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load(modelFile, map_location=torch.device('cpu')))
     tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
     with open(predictFile, 'a', encoding='utf-8') as predW:
         with open(newEventFile, 'r', encoding='utf-8') as wf:
@@ -46,4 +50,5 @@ if __name__ == '__main__':
                 newLine = f'{line},{tp},{labels[pred_label]}\n'
                 predW.write(newLine)
 
-                print('Label:', labels[pred_label], " text:", text)
+                if labels[pred_label] != 0:
+                    print('Label:', labels[pred_label], " text:", text)

@@ -21,19 +21,22 @@ class CNewsDataset(Dataset):
         with open(filename, 'r', encoding='utf-8') as wf:
             lines = wf.readlines()
         for line in tqdm(lines):
-            lineList = line.strip().split(',')
-            lineSize = len(lineList)
-            text = ""
             rate = 0
-            if lineSize > 12:
-                textList = lineList[3:-8]
-                text = ",".join(textList)
-                if lineList[-2]:
-                    rate = int(float(lineList[-2]))
-            else:
-                _, _, _, text, _, _, _, _, _, tp, rate1, _ = line.strip().split(',')
-                if rate1:
-                    rate = int(float(rate1))
+            # lineList = line.strip().split(',')
+            # lineSize = len(lineList)
+            # text = ""
+            # if lineSize > 12:
+            #     textList = lineList[3:-8]
+            #     text = ",".join(textList)
+            #     if lineList[-2]:
+            #         rate = int(float(lineList[-2]))
+            # else:
+            #     _, _, _, text, _, _, _, _, _, tp, rate1, _ = line.strip().split(',')
+            #     if rate1:
+            #         rate = int(float(rate1))
+            _, _, _, text, _, _, _, _, _, tp, rate1, _ = line.strip().split(',')
+            if rate1:
+                rate = int(float(rate1))
             label_id = self.labels.index(rate)
             token = self.tokenizer(text, add_special_tokens=True, padding='max_length', truncation=True, max_length=256)
             self.input_ids.append(np.array(token['input_ids']))

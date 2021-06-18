@@ -10,11 +10,12 @@ import requests
 import time
 import pandas as pd
 import datetime
+from tqdm import tqdm
 
-csvPath = '/Users/a/project/twitterscraper/csv/bitcoin86new.csv'
-# csvPath = '/home/songzhouran/py/bitcoin86.csv'
-# csvMarkPath = '/Users/a/project/twitterscraper/csv/bitcoin86mark1.csv'
-csvMarkPath = '/home/songzhouran/py/bitcoin86mark.csv'
+csvPath = '/Users/a/project/BertClassifier/csv/bitcoin86.csv'
+# csvPath = '/home/songzhouran/py/bert/BertClassifier/csv/bitcoin86.csv'
+csvMarkPath = '/Users/a/project/BertClassifier/csv/bitcoin86mark1.csv'
+# csvMarkPath = '/home/songzhouran/py/bert/BertClassifier/csv/bitcoin86mark.csv'
 matchList = ['coin', 'bitcoin', 'cryptocurrency', 'virtual', 'currency', 'crypto', 'doge', 'eth', 'usdt', 'busd', 'binance', '', '', '', '', '', '', '', '', '', '', '', '', '']
 twitterId = 'whale_alert'
 class SpiderTwitterAccountPost(tool.abc.SingleSpider):
@@ -151,9 +152,10 @@ class SpiderBitcoin86():
                       "neo", "omg", "ont", "qtum", "sushi", "theta", "trx", "vet", "xlm", "xmr", "xrp", "xtz",
                       "zec", "zil", "zrx"]
 
-    def running(self, fromDate):
-        # 构建一个从0开始，公差为20，最大为480的列表
-        start = list(range(0, 300, 1))
+    def running(self, fromDate=None):
+        fnames = ['id', 'inputtime', 'title', 'description', 'up_count', 'down_count', 'hits', 'url']
+
+        start = list(range(0, 20000, 1))
 
         # 设置爬虫请求头，不然会被反爬报错418，常用爬虫请求头可参见：http://www.guokuidata.com/crawler-requests-headers/
         headers = {
@@ -163,37 +165,45 @@ class SpiderBitcoin86():
         lst = []
 
         try:
-            isDone = False
-            for i in start:
-                if isDone:
-                    break
-                url = 'https://www.bitcoin86.com/api_v2/index.php/api/news/lives_list?p={}'.format(
-                    str(i))
-                # requests解析网页
-                res = requests.get(url, headers=headers)
-                # 判断相应状态，200为正常继续往下运行，否则返回响应值
-                if res.status_code == 200:
-                    print('正在爬取第{}条数据，共计15条数据'.format(str(i)))
-                    # 将json解析为python数据类型
-                    js = res.json()
-                    # 将每个网页中获取的‘data’对应的包含20个电影详细信息的列表列表合并到一个列表中
-                    for i, item in enumerate(js['data']):
-                        item['inputtime'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(item['inputtime'])))
-                        if item['inputtime'] <= fromDate:
-                            js['data'] = js['data'][0:i]
-                            isDone = True
+            with open(csvPath, 'a', encoding='utf8', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=fnames, extrasaction='ignore')
+                isDone = False
+                for i in start:
+                    if isDone:
+                        break
+                    url = 'https://www.bitcoin86.com/api_v2/index.php/api/news/lives_list?p={}'.format(
+                        str(i))
+                    # requests解析网页
+                    res = requests.get(url, headers=headers)
+                    # 判断相应状态，200为正常继续往下运行，否则返回响应值
+                    if res.status_code == 200:
+                        print('正在爬取第{}条数据，共计15条数据'.format(str(i)))
+                        # 将json解析为python数据类型
+                        js = res.json()
+                        # 将每个网页中获取的‘data’对应的包含20个电影详细信息的列表列表合并到一个列表中
+                        if not js['data']:
+                            print("page {} is empty, break!".format(str(i)))
                             break
-                    lst += js['data']
-                    time.sleep(0.5)
-                else:
-                    print(res.status_code)
+                        for i, item in enumerate(js['data']):
+                            item['inputtime'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(item['inputtime'])))
+                            if fromDate is not None and item['inputtime'] <= fromDate:
+                                js['data'] = js['data'][0:i]
+                                isDone = True
+                                break
+                            item['description'] = item['description'].replace(',', ';')
+                            item['title'] = item['title'].replace(',', ';')
+                        lst += js['data']
+                        if len(lst) > 6000:
+                            writer.writerows(lst)
+                            lst=[]
+
+
+                        time.sleep(0.5)
+                    else:
+                        print(res.status_code)
 
         finally:
-            f = open(csvPath, 'a', encoding='utf8', newline='')
-            fnames = ['id', 'inputtime', 'title', 'description', 'up_count', 'down_count', 'hits', 'url']
-            with f:
-                writer = csv.DictWriter(f, fieldnames=fnames, extrasaction='ignore')
-                writer.writerows(lst)
+            writer.writerows(lst)
             # 将该列表转化为dataframe数组
             # df = pd.DataFrame(lst)
             # # 将数组信息写入excel文件
@@ -243,7 +253,7 @@ class SpiderBitcoin86():
         }.get(keyword.lower(), None)
 
     def getRate(self, tp, startts, endts):
-        level2 = 0.1
+        level2 = 0.075
         level1 = 0.01
         headers = {
             'User-Agent': 'MQQBrowser/26 Mozilla/5.0 (Linux; U; Android 2.3.7; zh-cn; MB200 Build/GRJ22; CyanogenMod-7) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1'
@@ -265,18 +275,25 @@ class SpiderBitcoin86():
                 drop = (currentPrice - lPrice) / currentPrice
                 print('rise={},drop={}'.format(rise, drop))
                 if drop > level2 and rise > level2:
-                    return -3
+                    if drop < rise:
+                        return 2
+                    else:
+                        return -2
                 elif rise > level2:
                     return 2
                 elif drop > level2:
                     return -2
-                else:
-                    if drop > level1 and rise > level1 and rise > drop:
+                elif drop > level1 and rise > level1:
+                    if drop < rise:
                         return 1
-                    elif drop > level1 and rise > level1 and drop > rise:
-                        return -1
                     else:
-                        return 0
+                        return -1
+                elif rise > level1:
+                    return 1
+                elif drop > level1:
+                    return -1
+                else:
+                    return 0
             else:
                 print('empty klines={}, tp={}, startts={}, endts={}'.format(klines, tp, startts, endts))
         else:
@@ -289,6 +306,29 @@ class SpiderBitcoin86():
         if pattern := rx.search(text):
             tp = self.toTradePair(pattern.group(0))
         return tp
+
+    def process(self):
+        filename = "/Users/a/fsdownload/bitcoin86mark1.csv"
+        outfile="/Users/a/fsdownload/bitcoin86markproc1.csv"
+        i = 0
+        with open(outfile, 'a', encoding='utf-8') as predW:
+            with open(filename, 'r', encoding='utf-8') as wf:
+                lines = wf.readlines()
+            for line in tqdm(lines):
+                lineList = line.split(',')
+                lineSize = len(lineList)
+                newLine = ""
+                if lineSize > 12:
+                    textList = lineList[3:-8]
+                    text = ";".join(textList)
+                    newLine = f'{",".join(lineList[0:3])},{text},{",".join(lineList[-9:])}'
+                    print(str(i)+" newline:" + newLine)
+                else:
+                    _, _, _, text, _, _, _, _, _, _, _, _ = lineList
+                    newLine = line
+                predW.write(newLine)
+                i = i + 1
+        return
 
     def mark(self):
         cSize = 5000
@@ -328,8 +368,10 @@ class SpiderBitcoin86():
 
 # ------------------- 单元测试 -------------------
 if __name__ == "__main__":
+    print("start")
     # SpiderBitcoin86().mark()
-    SpiderBitcoin86().running("2021-06-08 16:17:04")
+    # SpiderBitcoin86().running("2021-06-08 16:17:04")
+    SpiderBitcoin86().process()
     # driver = Chrome(cache_path=r"/Users/a/project/twitterscraper/chrome")
     # SpiderBitcoin86().running()
     # print(SpiderTwitterAccountPost(driver).running(
