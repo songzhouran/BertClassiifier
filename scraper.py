@@ -190,8 +190,8 @@ class SpiderBitcoin86():
                                 js['data'] = js['data'][0:i]
                                 isDone = True
                                 break
-                            item['description'] = item['description'].replace(',', ';')
-                            item['title'] = item['title'].replace(',', ';')
+                            item['description'] = item['description'].replace(',', ';').replace('\"', '')
+                            item['title'] = item['title'].replace(',', ';').replace('\"', '')
                         lst += js['data']
                         if len(lst) > 6000:
                             writer.writerows(lst)
