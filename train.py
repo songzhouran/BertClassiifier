@@ -5,20 +5,23 @@ from torch.utils.data import DataLoader
 from model import BertClassifier
 from dataset import CNewsDataset
 from tqdm import tqdm
+from dbData import CLoadDbDataset
 
 def main():
-
+    CLoadDbDataset()
+    return
     # 参数设置
     batch_size = 4
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    epochs = 3
-    learning_rate = 1e-2    #Learning Rate不宜太大
+    print("device: ", device)
+    epochs = 2
+    learning_rate = 1e-4    #Learning Rate不宜太大
 
     # 获取到dataset
-    # train_dataset = CNewsDataset('/home/songzhouran/py/history/bitcoin86mark.csv')
-    # valid_dataset = CNewsDataset('/home/songzhouran/py/history/bitcoin86mark1.csv')
-    train_dataset = CNewsDataset('/Users/a/fsdownload/bitcoin86mark.csv')
-    valid_dataset = CNewsDataset('/Users/a/fsdownload/bitcoin86mark1.csv')
+    train_dataset = CNewsDataset('/home/songzhouran/py/bert/BertClassifier/trainData/bitcoin86markproc.csv')
+    valid_dataset = CNewsDataset('/home/songzhouran/py/bert/BertClassifier/trainData/bitcoin86markproc1.csv')
+    # train_dataset = CNewsDataset('/Users/a/fsdownload/bitcoin86mark.csv')
+    # valid_dataset = CNewsDataset('/Users/a/fsdownload/bitcoin86mark1.csv')
     #test_data = load_data('cnews/cnews.test.txt')
 
     

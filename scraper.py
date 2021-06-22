@@ -310,6 +310,8 @@ class SpiderBitcoin86():
     def process(self):
         filename = "/Users/a/fsdownload/bitcoin86mark1.csv"
         outfile="/Users/a/fsdownload/bitcoin86markproc1.csv"
+        filename = "/home/songzhouran/py/bert/BertClassifier/trainData/bitcoin86.csv"
+        outfile="/home/songzhouran/py/bert/BertClassifier/trainData/bitcoin86markproc.csv"
         i = 0
         with open(outfile, 'a', encoding='utf-8') as predW:
             with open(filename, 'r', encoding='utf-8') as wf:
@@ -318,21 +320,26 @@ class SpiderBitcoin86():
                 lineList = line.split(',')
                 lineSize = len(lineList)
                 newLine = ""
-                if lineSize > 12:
-                    textList = lineList[3:-8]
-                    text = ";".join(textList)
-                    newLine = f'{",".join(lineList[0:3])},{text},{",".join(lineList[-9:])}'
+                # if lineSize > 12:
+                #     textList = lineList[3:-8]
+                #     text = " ".join(textList)
+                #     newLine = f'{",".join(lineList[0:3])},{text},{",".join(lineList[-8:])}'
+                #     print(str(i)+" newline:" + newLine)
+                if lineSize > 8:
+                    textList = lineList[3:-4]
+                    text = " ".join(textList)
+                    newLine = f'{",".join(lineList[0:3])},{text},{",".join(lineList[-4:])}'
                     print(str(i)+" newline:" + newLine)
                 else:
-                    _, _, _, text, _, _, _, _, _, _, _, _ = lineList
+                    _, _, _, text, _, _, _, _ = lineList
                     newLine = line
                 predW.write(newLine)
                 i = i + 1
+        print("process end")
         return
 
     def mark(self):
         cSize = 5000
-
         reader = pd.read_csv(csvPath, chunksize=cSize, header=None)
         row = -1
         iChunk = -1
