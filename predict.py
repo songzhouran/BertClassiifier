@@ -25,16 +25,16 @@ def predOne(text):
 if __name__ == '__main__':
     # newEventFile = '/Users/a/project/twitterscraper/csv/bitcoin86new.csv'
     # predictFile = '/Users/a/project/twitterscraper/csv/bitcoin86pred.csv'
-    modelFile = '/Users/a/Documents/best_model.pkl'
+    modelFile = '/Users/a/Documents/best_model.pkl2'
     newEventFile = '/home/songzhouran/py/bert/BertClassifier/data/bitcoin86new.csv'
     predictFile = '/home/songzhouran/py/bert/BertClassifier/data/bitcoin86pred.csv'
-    modelFile = '/home/songzhouran/py/bert/BertClassifier/models/best_model.pkl'
+    # modelFile = '/home/songzhouran/py/bert/BertClassifier/models/best_model.pkl2'
     labels = [-2, -1, 0, 1, 2]
     bert_config = BertConfig.from_pretrained('bert-base-chinese')
     model = BertClassifier(bert_config, len(labels))
     model.load_state_dict(torch.load(modelFile, map_location=torch.device('cpu')))
     tokenizer = BertTokenizer.from_pretrained('bert-base-chinese')
-    predOne("中国农业银行发布关于禁止使用我行服务用于比特币等虚拟货币交易的声明")
+    predOne("分析：BTC回调获得支撑，企稳后有望进一步反弹")
     # with open(predictFile, 'a', encoding='utf-8') as predW:
     #     with open(newEventFile, 'r', encoding='utf-8') as wf:
     #         lines = wf.readlines()

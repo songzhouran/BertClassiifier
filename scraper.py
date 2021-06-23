@@ -373,6 +373,7 @@ class SpiderBitcoin86():
                         pdNew = pdNew.drop(index=pdNew.index)
         pdNew.to_csv(csvMarkPath, mode='a', index=None, header=False)
 
+
 # ------------------- 单元测试 -------------------
 if __name__ == "__main__":
     print("start")
